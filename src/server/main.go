@@ -4,6 +4,8 @@ import (
   "net/http"
   "encoding/json"
   "fmt"
+  httptransport "github.com/go-openapi/runtime/client"
+  apiclient "github.com/mluvii/publicapi-go/client"
 )
 
 type EventPayload struct {
