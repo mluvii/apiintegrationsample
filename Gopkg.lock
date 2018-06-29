@@ -62,7 +62,7 @@
     "middleware/untyped",
     "security"
   ]
-  revision = "cd9d8ed52e4b4665463cbc655500e4faa09c3c16"
+  revision = "9a3091f566c0811ef4d54b535179bc0fc484a11f"
 
 [[projects]]
   branch = "master"
@@ -114,7 +114,7 @@
     "client/webhooks",
     "models"
   ]
-  revision = "c464d3418a609fb9d597dc10a1e3c63448e1418e"
+  revision = "67c21b4e2c0fb6f518de587e8114a0ea600a8072"
 
 [[projects]]
   branch = "master"
@@ -124,7 +124,7 @@
     "context/ctxhttp",
     "idna"
   ]
-  revision = "d1d521f6884855bc0e59c3d011574bd0678f18bc"
+  revision = "4cb1c02c05b0e749b0365f61ae859a8e0cfceed9"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -166,6 +166,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e932130a00b53a7f8b0b8d708f7639364f8433827dd39e64b755bcbf770da47a"
+  inputs-digest = "d2dd32c05d1aa86de6ebb20d5be29d88850796da3bb9ed0b6bdc0aff7f6c3a16"
   solver-name = "gps-cdcl"
   solver-version = 1
