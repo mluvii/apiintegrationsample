@@ -17,7 +17,7 @@ type EventPayload struct {
 }
 
 func postOrPutWebhook(client *apiclient.Mluviiapi, model models.PublicAPIWebhookModelsWebhookModel) (bool, error) {
-  postParams := webhooks.NewAPIV1WebhooksPostParams();
+  postParams := webhooks.NewAPIV1WebhooksPostParams()
   postParams.Model = &model
 
   _, err := client.Webhooks.APIV1WebhooksPost(postParams)
@@ -33,10 +33,10 @@ func postOrPutWebhook(client *apiclient.Mluviiapi, model models.PublicAPIWebhook
 }
 
 func subscribeToEvents(client *apiclient.Mluviiapi) {
-  callbackUrl := "http://localhost:5000/mluviiwebhook"
+  callbackUrl := "http://gois:awesome@localhost:5000/mluviiwebhook"
   model := models.PublicAPIWebhookModelsWebhookModel{
-    &callbackUrl,
-    []string{"SessionStarted", "SessionForwarded", "SessionEnded", "UserStatusChanged"},
+    CallbackURL: &callbackUrl,
+    EventTypes:  []string{"SessionStarted", "SessionForwarded", "SessionEnded", "UserStatusChanged"},
   }
 
   if ok, err := postOrPutWebhook(client, model); !ok {
@@ -45,6 +45,12 @@ func subscribeToEvents(client *apiclient.Mluviiapi) {
 }
 
 func processMluviiEvent(w http.ResponseWriter, r *http.Request) {
+  user, pass, _ := r.BasicAuth()
+  if user != "gois" || pass != "awesome" {
+    http.Error(w, "Unauthorized.", 401)
+    return
+  }
+
   decoder := json.NewDecoder(r.Body)
   var ep EventPayload
   err := decoder.Decode(&ep)
