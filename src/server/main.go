@@ -17,7 +17,22 @@ import (
 
 type EventPayload struct {
   EventType string
-  Data map[string]interface{}
+  Data json.RawMessage
+}
+
+type EventDataSessionStarted struct {
+  Id int64
+  Channel string
+  Source string
+  Started string
+}
+
+type EventDataSessionEnded struct {
+  Id int64
+  Channel string
+  Source string
+  Started string
+  Ended string
 }
 
 func obtainToken(authKey string) (string, error) {
@@ -66,6 +81,29 @@ func subscribeToEvents(client *apiclient.Mluviiapi) {
   }
 }
 
+func decodeMluviiEvent(decoder *json.Decoder) (string, interface{}, error) {
+  var ep EventPayload
+  err := decoder.Decode(&ep)
+  if err != nil {
+    return "", nil, err
+  }
+
+  switch ep.EventType {
+  case "SessionStarted":
+    var data EventDataSessionStarted
+    err := json.Unmarshal(ep.Data, &data)
+    return ep.EventType, data, err
+  case "SessionEnded":
+    var data EventDataSessionEnded
+    err := json.Unmarshal(ep.Data, &data)
+    return ep.EventType, data, err
+  default:
+    var data interface{}
+    err := json.Unmarshal(ep.Data, &data)
+    return ep.EventType, data, err
+  }
+}
+
 func processMluviiEvent(w http.ResponseWriter, r *http.Request) {
   user, pass, _ := r.BasicAuth()
   if user != "go" || pass != "isawesome" {
@@ -74,13 +112,18 @@ func processMluviiEvent(w http.ResponseWriter, r *http.Request) {
   }
 
   decoder := json.NewDecoder(r.Body)
-  var ep EventPayload
-  err := decoder.Decode(&ep)
+  eventType, eventData, err := decodeMluviiEvent(decoder)
   if err != nil {
     panic(err)
   }
-  fmt.Println(ep.EventType)
-  fmt.Println(ep.Data)
+
+  fmt.Println(eventType)
+  switch ed := eventData.(type) {
+  case EventDataSessionEnded:
+    fmt.Printf("session %v: %+v\n", ed.Id, ed)
+  default:
+    fmt.Printf("%+v\n", ed)
+  }
 }
 
 func main() {
