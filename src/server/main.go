@@ -9,11 +9,33 @@ import (
   "github.com/go-openapi/strfmt"
   "github.com/mluvii/publicapi-go/client/webhooks"
   "github.com/mluvii/publicapi-go/models"
+  "net/url"
+  "io/ioutil"
+  "errors"
+  "os"
 )
 
 type EventPayload struct {
   EventType string
   Data map[string]interface{}
+}
+
+func obtainToken(authKey string) (string, error) {
+  resp, err := http.PostForm("https://applocal.mluvii.com/MasSrv/Service/Login",
+    url.Values{"authKey": {authKey}})
+
+  if err != nil {
+    return "", err
+  }
+
+  defer resp.Body.Close()
+
+  if resp.StatusCode == http.StatusOK {
+    bodyBytes, _ := ioutil.ReadAll(resp.Body)
+    return string(bodyBytes), nil
+  }
+
+  return "", errors.New("auth failed")
 }
 
 func postOrPutWebhook(client *apiclient.Mluviiapi, model models.PublicAPIWebhookModelsWebhookModel) (bool, error) {
@@ -33,7 +55,7 @@ func postOrPutWebhook(client *apiclient.Mluviiapi, model models.PublicAPIWebhook
 }
 
 func subscribeToEvents(client *apiclient.Mluviiapi) {
-  callbackUrl := "http://gois:awesome@localhost:5000/mluviiwebhook"
+  callbackUrl := "http://go:isawesome@localhost:5000/mluviiwebhook"
   model := models.PublicAPIWebhookModelsWebhookModel{
     CallbackURL: &callbackUrl,
     EventTypes:  []string{"SessionStarted", "SessionForwarded", "SessionEnded", "UserStatusChanged"},
@@ -46,7 +68,7 @@ func subscribeToEvents(client *apiclient.Mluviiapi) {
 
 func processMluviiEvent(w http.ResponseWriter, r *http.Request) {
   user, pass, _ := r.BasicAuth()
-  if user != "gois" || pass != "awesome" {
+  if user != "go" || pass != "isawesome" {
     http.Error(w, "Unauthorized.", 401)
     return
   }
@@ -62,8 +84,17 @@ func processMluviiEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+  token, err := obtainToken(os.Args[1])
+  if err != nil {
+    panic(err)
+  }
+
+  println(token)
+
   transport := httptransport.New("127.0.0.1:44301", "", nil)
   client := apiclient.New(transport, strfmt.Default)
+  bearerTokenAuth := httptransport.BearerToken(token)
+  transport.DefaultAuthentication = bearerTokenAuth
 
   subscribeToEvents(client)
 
